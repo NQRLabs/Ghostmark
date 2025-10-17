@@ -6,55 +6,44 @@
 <title>Ghostmark - Seeded LSB Image Steganography</title>
 <style>
   :root {
-    --bg: #0e0f12; --fg: #e7e7ea; --muted:#a6a7ad; --accent:#7bdcff; --card:#15171c; --border:#272a31;
+    --bg:#0e0f12; --fg:#e7e7ea; --muted:#a6a7ad; --accent:#7bdcff; --card:#15171c; --border:#272a31;
   }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin:0; font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-    background: radial-gradient(1200px 600px at 20% -10%, #1b1f28 0%, var(--bg) 60%) fixed var(--bg); color: var(--fg);
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji";
+    background:radial-gradient(1200px 600px at 20% -10%,#1b1f28 0%,var(--bg) 60%) fixed var(--bg); color:var(--fg);
     display:flex; align-items:flex-start; justify-content:center; padding:24px;
   }
-  .wrap { width:min(1100px, 100%); }
-  h1 { margin:0 0 8px; font-weight:700; letter-spacing:.3px; }
-  .sub { color:var(--muted); margin-bottom:18px }
-  .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
-  .tabbtn {
-    border:1px solid var(--border); background:var(--card); color:var(--fg); padding:10px 14px; border-radius:12px; cursor:pointer;
-  }
-  .tabbtn.active { outline:2px solid var(--accent); }
-  .card {
-    background:linear-gradient(180deg, #161922, #111318); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px;
-  }
-  .grid { display:grid; gap:16px; grid-template-columns: 1fr 1fr; }
-  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-  label.upl { display:inline-block; border:1px dashed var(--border); padding:10px 12px; border-radius:12px; cursor:pointer; background:#0f1218; }
-  input[type="file"] { display:none; }
-  input[type="number"], input[type="text"] {
+  .wrap{width:min(1100px,100%)}
+  h1{margin:0 0 8px; font-weight:700; letter-spacing:.3px}
+  .sub{color:var(--muted); margin-bottom:18px}
+  .tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
+  .tabbtn{border:1px solid var(--border); background:var(--card); color:var(--fg); padding:10px 14px; border-radius:12px; cursor:pointer}
+  .tabbtn.active{outline:2px solid var(--accent)}
+  .card{background:linear-gradient(180deg,#161922,#111318); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px}
+  .grid{display:grid; gap:16px; grid-template-columns:1fr 1fr}
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  label.upl{display:inline-block; border:1px dashed var(--border); padding:10px 12px; border-radius:12px; cursor:pointer; background:#0f1218}
+  input[type="file"]{display:none}
+  input[type="number"], input[type="text"]{
     background:#0f1218; color:var(--fg); border:1px solid var(--border); padding:8px 10px; border-radius:10px; min-width:120px;
   }
-  button {
-    background:linear-gradient(180deg, #2a2f3b, #1e2230); color:var(--fg); border:1px solid var(--border);
+  input[type="checkbox"], input[type="radio"]{accent-color:#58c8ff}
+  button{
+    background:linear-gradient(180deg,#2a2f3b,#1e2230); color:var(--fg); border:1px solid var(--border);
     padding:10px 14px; border-radius:12px; cursor:pointer;
   }
-
-  button.primary { outline: none; }
-  
-  button.primary:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-  button.primary:hover {
-    filter: brightness(1.05);
-  }
-  /* add a visible press feedback for action buttons */
-  button:active { transform: translateY(1px); filter: brightness(0.95); }
-  .canvwrap { background:#0b0d12; border:1px solid var(--border); border-radius:12px; padding:8px; }
-  canvas { width:100%; height:auto; display:block; border-radius:8px; background:#000; }
-  .hint { color:var(--muted); font-size:12px; }
-  .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#1b1f27; padding:2px 6px; border-radius:6px; border:1px solid #2a2e38; }
-  .foot { color:var(--muted); font-size:12px; margin-top:8px; }
-  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  button.primary{outline:none}
+  button.primary:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  button:active{transform:translateY(1px); filter:brightness(0.95)}
+  .canvwrap{background:#0b0d12; border:1px solid var(--border); border-radius:12px; padding:8px}
+  canvas{width:100%; height:auto; display:block; border-radius:8px; background:#000}
+  .hint{color:var(--muted); font-size:12px}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace; background:#1b1f27; padding:2px 6px; border-radius:6px; border:1px solid #2a2e38}
+  .foot{color:var(--muted); font-size:12px; margin-top:8px}
+  .warn{color:#ffb86c}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -77,12 +66,18 @@
       <label class="upl">Upload Hidden Image <input id="hiddenFile" type="file" accept="image/*"></label>
       <span class="hint">Tip: the hidden image will be resized to match the cover dimensions.</span>
     </div>
+
     <div class="row">
-      <span>Seed:</span>
+      <span>Seed / Passcode:</span>
       <input id="seedInput" type="text" placeholder="Leave blank to auto-generate" />
       <button id="btnRandSeed">Randomize</button>
-      <span class="hint">Seed is embedded in the top-left 8x8 block; decoding recovers it automatically.</span>
     </div>
+
+    <div class="row">
+      <label><input id="chkEmbedSeed" type="checkbox" checked> Embed seed in image (recommended)</label>
+      <span id="noEmbedNote" class="hint"></span>
+    </div>
+
     <div class="row">
       <button id="btnPrep" class="primary">1) Prepare Hidden (Grayscale + Dither)</button>
       <button id="btnEncode" disabled>2) Encode into Cover</button>
@@ -99,6 +94,7 @@
         <div class="canvwrap"><canvas id="stegoCanvas"></canvas></div>
       </div>
     </div>
+
     <div class="foot">
       Algorithms: grayscale = ITU-R BT.601 luma (0.299R, 0.587G, 0.114B). Dithering = Floyd-Steinberg (7/16, 3/16, 5/16, 1/16).
       LSB parity randomized per pixel with a Mulberry32 PRNG from a 32-bit seed; channel choice randomized per pixel.
@@ -111,10 +107,18 @@
       <label class="upl">Upload Stego Image <input id="stegoInFile" type="file" accept="image/*"></label>
       <button id="btnDecode" class="primary" disabled>Decode</button>
     </div>
+
     <div class="row">
-      <span>Recovered Seed:</span>
+      <label><input type="radio" name="decmode" value="auto" checked> Auto: read embedded seed</label>
+      <label><input type="radio" name="decmode" value="manual"> Manual seed/passcode</label>
+      <input id="manualSeed" type="text" placeholder="Enter seed or passphrase" disabled />
+    </div>
+
+    <div class="row">
+      <span>Seed used:</span>
       <span id="recoveredSeed" class="kbd">-</span>
     </div>
+
     <div class="grid">
       <div>
         <h3>Decoded Hidden (BW)</h3>
@@ -125,375 +129,419 @@
         <div class="canvwrap"><canvas id="stegoInCanvas"></canvas></div>
       </div>
     </div>
+
+    <div class="foot">
+      Hint: If the image was encoded without embedding the seed, pick "Manual seed/passcode" and enter the same value used during encoding.
+    </div>
   </section>
 </div>
 
 <script>
 /* ---------- Utilities ---------- */
-function loadImageFile(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
+function loadImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=reject;
+    img.src=URL.createObjectURL(file);
   });
 }
-function makeCanvasLike(img) {
+function makeCanvasLike(img){
+  const c=document.createElement('canvas');
+  c.width=img.naturalWidth||img.width;
+  c.height=img.naturalHeight||img.height;
+  c.getContext('2d').drawImage(img,0,0);
+  return c;
+}
+function resizeImageTo(img,w,h){
+  const c=document.createElement('canvas');
+  c.width=w; c.height=h;
+  const ctx=c.getContext('2d');
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(img,0,0,w,h);
+  return c;
+}
+function getImageData(canvas){return canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height)}
+function putImageData(canvas,imgData){
+  const ctx=canvas.getContext('2d');
+  canvas.width=imgData.width; canvas.height=imgData.height;
+  ctx.putImageData(imgData,0,0);
+}
+/* FNV-1a 32-bit: map string -> 32-bit seed */
+function fnv1a32(str){
+  let h=0x811c9dc5>>>0;
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0;}
+  return h>>>0;
+}
+/* Mulberry32 PRNG */
+function mulberry32(a){
+  let t=a>>>0;
+  return function(){
+    t|=0; t=(t+0x6D2B79F5)>>>0;
+    let r=Math.imul(t^(t>>>15),1|t);
+    r^=r+Math.imul(r^(r>>>7),61|r);
+    return ((r^(r>>>14))>>>0)/4294967296;
+  }
+}
+
+/* ---------- Dithering ---------- */
+function toGrayscaleLuma(imgData){
+  const d=imgData.data;
+  for(let i=0;i<d.length;i+=4){
+    const y=(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]);
+    d[i]=d[i+1]=d[i+2]=y;
+  }
+  return imgData;
+}
+function floydSteinbergBW(imgData){
+  const w=imgData.width,h=imgData.height,d=imgData.data;
+  const buf=new Float32Array(w*h);
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){const i=(y*w+x)*4; buf[y*w+x]=d[i];}
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const idx=y*w+x, oldv=buf[idx], newv=oldv<128?0:255, err=oldv-newv; buf[idx]=newv;
+      const add=(xx,yy,f)=>{const nx=x+xx,ny=y+yy; if(nx>=0&&nx<w&&ny>=0&&ny<h){buf[ny*w+nx]=Math.max(0,Math.min(255,buf[ny*w+nx]+err*f));}}
+      add(1,0,7/16); add(-1,1,3/16); add(0,1,5/16); add(1,1,1/16);
+    }
+  }
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){const i=(y*w+x)*4, v=buf[y*w+x]<128?0:255; d[i]=d[i+1]=d[i+2]=v;}
+  return imgData;
+}
+
+// --- NEW HELPERS: near-BW detection, threshold, and canvas ops ---
+function isNearBW(imgData, tol = 8) {
+  const d = imgData.data;
+  let countNear = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = (d[i] + d[i+1] + d[i+2]) / 3;
+    if (v < tol || v > 255 - tol) countNear++;
+  }
+  const ratio = countNear / (d.length / 4);
+  const isBW = ratio > 0.98; // ≥98% of pixels are already near black/white
+  const isGray = ratio > 0.8; // grayscale dominance
+  return { isBW, isGray };
+}
+
+function thresholdBW(imgData, th = 128) {
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = d[i] < th ? 0 : 255;
+    d[i] = d[i+1] = d[i+2] = v;
+  }
+  return imgData;
+}
+
+function canvasFromImage(img) {
   const c = document.createElement('canvas');
   c.width = img.naturalWidth || img.width;
   c.height = img.naturalHeight || img.height;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(img, 0, 0);
+  c.getContext('2d').drawImage(img, 0, 0);
   return c;
 }
-function resizeImageTo(img, w, h) {
+
+function resizeCanvas(srcCanvas, w, h, smoothing = true) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, 0, 0, w, h);
+  ctx.imageSmoothingEnabled = smoothing;
+  if (smoothing) ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcCanvas, 0, 0, w, h);
   return c;
 }
-function getImageData(canvas) {
-  return canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
-}
-function putImageData(canvas, imgData) {
-  const ctx = canvas.getContext('2d');
-  canvas.width = imgData.width;
-  canvas.height = imgData.height;
-  ctx.putImageData(imgData, 0, 0);
-}
-/* 32-bit FNV-1a hash for seed strings -> u32 */
-function fnv1a32(str) {
-  let h = 0x811c9dc5 >>> 0;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
+/* ---------- Seed header in top-left 8x8 (RED LSB) ---------- */
+function writeSeedLSB(imgData, seedU32){
+  const w=imgData.width,h=imgData.height;
+  if(w<8||h<8) throw new Error("Image too small to embed seed.");
+  const header=[0x53,0x47,0x31]; // "SG1"
+  const bits=[];
+  for(const byte of header) for(let b=7;b>=0;b--) bits.push((byte>>b)&1);
+  for(let b=31;b>=0;b--) bits.push((seedU32>>>b)&1); // 56 bits total
+  const d=imgData.data;
+  for(let i=0;i<bits.length;i++){
+    const x=i%8, y=(i/8)|0, px=(y*w+x)*4;
+    let r=d[px], want=bits[i];
+    if((r&1)!==want) r=(r===255)?254:(r+1);
+    d[px]=r;
   }
-  return h >>> 0;
+  return imgData;
 }
-/* Mulberry32 PRNG (deterministic for a 32-bit seed) */
-function mulberry32(a) {
-  let t = a >>> 0;
-  return function() {
-    t |= 0; t = (t + 0x6D2B79F5) >>> 0;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+function readSeedLSB(imgData){
+  const w=imgData.width,h=imgData.height;
+  if(w<8||h<8) return {ok:false,seed:null};
+  const d=imgData.data;
+  const readBits=(count,start)=>{
+    let out=0;
+    for(let i=0;i<count;i++){
+      const idx=start+i, x=idx%8, y=(idx/8)|0, px=(y*w+x)*4, bit=d[px]&1;
+      out=(out<<1)|bit;
+    }
+    return out>>>0;
   };
-}
-
-/* ---------- Dithering (Grayscale + Floyd-Steinberg) ---------- */
-function toGrayscaleLuma(imgData) {
-  const d = imgData.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], g = d[i+1], b = d[i+2];
-    const y = (0.299 * r + 0.587 * g + 0.114 * b); // BT.601 luma
-    d[i] = d[i+1] = d[i+2] = y;
-  }
-  return imgData;
-}
-function floydSteinbergBW(imgData) {
-  const w = imgData.width, h = imgData.height;
-  const d = imgData.data;
-  const buf = new Float32Array(w*h);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y*w + x) * 4;
-      buf[y*w + x] = d[i];
-    }
-  }
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y*w + x;
-      const old = buf[idx];
-      const newVal = old < 128 ? 0 : 255;
-      const err = old - newVal;
-      buf[idx] = newVal;
-      const distribute = (xx, yy, factor) => {
-        const nx = x + xx, ny = y + yy;
-        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-          buf[ny*w + nx] = Math.max(0, Math.min(255, buf[ny*w + nx] + err * factor));
-        }
-      };
-      distribute( 1, 0, 7/16);
-      distribute(-1, 1, 3/16);
-      distribute( 0, 1, 5/16);
-      distribute( 1, 1, 1/16);
-    }
-  }
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y*w + x) * 4;
-      const v = buf[y*w + x] < 128 ? 0 : 255;
-      d[i] = d[i+1] = d[i+2] = v;
-    }
-  }
-  return imgData;
-}
-
-/* ---------- Seed embedding (8x8 block, red-channel LSB) ---------- */
-/* Header "SG1" (0x53,0x47,0x31) + 32-bit seed (MSB-first) -> 56 bits total.
-   Bits are stored in the top-left 8x8 block, scanning left->right, top->bottom,
-   i.e., (x = i % 8, y = floor(i / 8)), for i = 0..55, into the RED LSB. */
-function writeSeedLSB(imgData, seedU32) {
-  const w = imgData.width, h = imgData.height;
-  if (w < 8 || h < 8) throw new Error("Image too small to embed seed.");
-  const header = [0x53, 0x47, 0x31]; // 'S','G','1'
-  const bits = [];
-  for (const byte of header) for (let b = 7; b >= 0; b--) bits.push((byte >> b) & 1);
-  for (let b = 31; b >= 0; b--) bits.push((seedU32 >>> b) & 1);
-  const d = imgData.data;
-  for (let i = 0; i < bits.length; i++) {
-    const x = i % 8;
-    const y = (i / 8) | 0;
-    const px = (y * w + x) * 4;
-    let r = d[px];
-    const want = bits[i];
-    if ((r & 1) !== want) r = (r === 255) ? 254 : (r + 1);
-    d[px] = r;
-  }
-  return imgData;
-}
-function readSeedLSB(imgData) {
-  const w = imgData.width, h = imgData.height;
-  if (w < 8 || h < 8) return { ok: false, seed: null };
-  const d = imgData.data;
-  const readBits = (count, startBitIndex) => {
-    let out = 0;
-    for (let i = 0; i < count; i++) {
-      const bitIdx = startBitIndex + i;
-      const x = bitIdx % 8;
-      const y = (bitIdx / 8) | 0;
-      const px = (y * w + x) * 4;
-      const bit = d[px] & 1;
-      out = (out << 1) | bit;
-    }
-    return out >>> 0;
-  };
-  const SG1 = (0x53 << 16) | (0x47 << 8) | 0x31;
-  const header = readBits(24, 0);
-  if (header !== SG1) return { ok: false, seed: null };
-  const seed = readBits(32, 24) >>> 0;
-  return { ok: true, seed };
+  const SG1=(0x53<<16)|(0x47<<8)|0x31;
+  const header=readBits(24,0);
+  if(header!==SG1) return {ok:false,seed:null};
+  const seed=readBits(32,24)>>>0;
+  return {ok:true,seed};
 }
 
 /* ---------- Encoding / Decoding ---------- */
-function isReservedPixel(x, y) { return (x < 8 && y < 8); }
-function encodeLSB(stegoImgData, bwHiddenImgData, seedU32) {
-  const w = stegoImgData.width, h = stegoImgData.height;
-  if (bwHiddenImgData.width !== w || bwHiddenImgData.height !== h)
-    throw new Error("Hidden image must match cover image dimensions.");
-  writeSeedLSB(stegoImgData, seedU32);
-  const rng = mulberry32(seedU32);
-  const S = stegoImgData.data;
-  const H = bwHiddenImgData.data;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      if (isReservedPixel(x, y)) continue;
-      const i = (y*w + x) * 4;
-      const hiddenWhite = H[i] > 127;
-      const chan = Math.floor(rng() * 3); // 0=R,1=G,2=B
-      const idx = i + chan;
-      const whiteParity = (rng() < 0.5) ? 0 : 1; // even/odd for white
-      const desiredParity = hiddenWhite ? whiteParity : (1 - whiteParity);
-      let v = S[idx];
-      if ((v & 1) !== desiredParity) v = (v === 255) ? 254 : (v + 1);
-      S[idx] = v;
+function isReservedPixel(x,y){return (x<8 && y<8);}
+
+function encodeLSB(stegoImgData, bwHiddenImgData, seedU32, embedSeed){
+  const w=stegoImgData.width,h=stegoImgData.height;
+  if(bwHiddenImgData.width!==w||bwHiddenImgData.height!==h) throw new Error("Hidden image must match cover image dimensions.");
+  if(embedSeed) writeSeedLSB(stegoImgData, seedU32);
+  const rng=mulberry32(seedU32), S=stegoImgData.data, H=bwHiddenImgData.data;
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      if(embedSeed && isReservedPixel(x,y)) continue; // skip header area only if writing one
+      const i=(y*w+x)*4, hiddenWhite=H[i]>127;
+      const chan=Math.floor(rng()*3), idx=i+chan;
+      const whiteParity=(rng()<0.5)?0:1;
+      const desired=hiddenWhite?whiteParity:(1-whiteParity);
+      let v=S[idx]; if((v&1)!==desired) v=(v===255)?254:(v+1); S[idx]=v;
     }
   }
   return stegoImgData;
 }
-function decodeLSB(stegoImgData) {
-  const w = stegoImgData.width, h = stegoImgData.height;
-  const { ok, seed } = readSeedLSB(stegoImgData);
-  if (!ok) throw new Error("No valid seed header found. Not a Ghostmark image?");
-  const rng = mulberry32(seed);
-  const S = stegoImgData.data;
-  const out = new ImageData(w, h);
-  const D = out.data;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y*w + x) * 4;
-      if (isReservedPixel(x, y)) { D[i]=D[i+1]=D[i+2]=0; D[i+3]=255; continue; }
-      const chan = Math.floor(rng() * 3);
-      const idx = i + chan;
-      const whiteParity = (rng() < 0.5) ? 0 : 1;
-      const parity = S[idx] & 1;
-      const isWhite = (parity === whiteParity);
-      const v = isWhite ? 255 : 0;
-      D[i] = D[i+1] = D[i+2] = v; D[i+3] = 255;
+
+function decodeLSB(stegoImgData, seedOverride){
+  const w=stegoImgData.width,h=stegoImgData.height;
+  let seed=null, usedMode="auto";
+  if(seedOverride!=null){
+    seed=seedOverride>>>0; usedMode="manual";
+  }else{
+    const res=readSeedLSB(stegoImgData);
+    if(!res.ok) throw new Error("No embedded seed found. Switch to Manual seed and enter the passcode used at encode time.");
+    seed=res.seed>>>0;
+  }
+  const rng=mulberry32(seed), S=stegoImgData.data, out=new ImageData(w,h), D=out.data;
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      // If we used auto mode (header present), reserved area is black for clarity; in manual mode we don't skip any pixels.
+      if(usedMode==="auto" && isReservedPixel(x,y)){D[i]=D[i+1]=D[i+2]=0; D[i+3]=255; continue;}
+      const chan=Math.floor(rng()*3), idx=i+chan;
+      const whiteParity=(rng()<0.5)?0:1;
+      const parity=S[idx]&1, isWhite=(parity===whiteParity), v=isWhite?255:0;
+      D[i]=D[i+1]=D[i+2]=v; D[i+3]=255;
     }
   }
-  return { imageData: out, seed };
+  return {imageData:out, seed, mode:usedMode};
 }
 
-/* ---------- UI wiring ---------- */
-const els = {
-  tabs: document.querySelectorAll('.tabbtn'),
-  enc: document.getElementById('encode'),
-  dec: document.getElementById('decode'),
-  coverFile: document.getElementById('coverFile'),
-  hiddenFile: document.getElementById('hiddenFile'),
-  seedInput: document.getElementById('seedInput'),
-  btnRandSeed: document.getElementById('btnRandSeed'),
-  btnPrep: document.getElementById('btnPrep'),
-  btnEncode: document.getElementById('btnEncode'),
-  btnDownload: document.getElementById('btnDownload'),
-  hiddenDitherCanvas: document.getElementById('hiddenDitherCanvas'),
-  stegoCanvas: document.getElementById('stegoCanvas'),
-  stegoInFile: document.getElementById('stegoInFile'),
-  stegoInCanvas: document.getElementById('stegoInCanvas'),
-  btnDecode: document.getElementById('btnDecode'),
-  decodedCanvas: document.getElementById('decodedCanvas'),
-  recoveredSeed: document.getElementById('recoveredSeed'),
+/* ---------- UI ---------- */
+const els={
+  tabs:document.querySelectorAll('.tabbtn'),
+  enc:document.getElementById('encode'),
+  dec:document.getElementById('decode'),
+
+  coverFile:document.getElementById('coverFile'),
+  hiddenFile:document.getElementById('hiddenFile'),
+  seedInput:document.getElementById('seedInput'),
+  btnRandSeed:document.getElementById('btnRandSeed'),
+  chkEmbedSeed:document.getElementById('chkEmbedSeed'),
+  noEmbedNote:document.getElementById('noEmbedNote'),
+
+  btnPrep:document.getElementById('btnPrep'),
+  btnEncode:document.getElementById('btnEncode'),
+  btnDownload:document.getElementById('btnDownload'),
+
+  hiddenDitherCanvas:document.getElementById('hiddenDitherCanvas'),
+  stegoCanvas:document.getElementById('stegoCanvas'),
+
+  stegoInFile:document.getElementById('stegoInFile'),
+  stegoInCanvas:document.getElementById('stegoInCanvas'),
+  btnDecode:document.getElementById('btnDecode'),
+  decodedCanvas:document.getElementById('decodedCanvas'),
+  recoveredSeed:document.getElementById('recoveredSeed'),
+
+  decModeAuto:document.querySelector('input[name="decmode"][value="auto"]'),
+  decModeManual:document.querySelector('input[name="decmode"][value="manual"]'),
+  manualSeed:document.getElementById('manualSeed'),
 };
 
-let coverImg = null, hiddenImg = null;
-let preparedHiddenBW = null;
-let stegoImageData = null;
+let coverImg=null, hiddenImg=null;
+let preparedHiddenBW=null;
+let stegoImageData=null;
 
 // Tabs
-els.tabs.forEach(btn => {
-  btn.addEventListener('click', () => {
-    els.tabs.forEach(b => b.classList.remove('active'));
+els.tabs.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    els.tabs.forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    const which = btn.dataset.tab;
-    els.enc.style.display = (which === 'encode') ? '' : 'none';
-    els.dec.style.display = (which === 'decode') ? '' : 'none';
+    const which=btn.dataset.tab;
+    els.enc.style.display=(which==='encode')?'':'none';
+    els.dec.style.display=(which==='decode')?'':'none';
   });
 });
 
-// Load files
-els.coverFile.addEventListener('change', async e => {
-  const f = e.target.files[0]; if (!f) return;
-  coverImg = await loadImageFile(f);
-  preparedHiddenBW = null; stegoImageData = null;
-  els.btnEncode.disabled = true; els.btnDownload.disabled = true;
+// File loads
+els.coverFile.addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  coverImg=await loadImageFile(f);
+  preparedHiddenBW=null; stegoImageData=null;
+  els.btnEncode.disabled=true; els.btnDownload.disabled=true;
   drawCanvas(els.stegoCanvas, makeCanvasLike(coverImg));
 });
-els.hiddenFile.addEventListener('change', async e => {
-  const f = e.target.files[0]; if (!f) return;
-  hiddenImg = await loadImageFile(f);
-  preparedHiddenBW = null; stegoImageData = null;
-  els.btnEncode.disabled = true; els.btnDownload.disabled = true;
+els.hiddenFile.addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  hiddenImg=await loadImageFile(f);
+  preparedHiddenBW=null; stegoImageData=null;
+  els.btnEncode.disabled=true; els.btnDownload.disabled=true;
   drawCanvas(els.hiddenDitherCanvas, makeCanvasLike(hiddenImg));
 });
 
-function drawCanvas(canvas, sourceCanvas) {
-  canvas.width = sourceCanvas.width;
-  canvas.height = sourceCanvas.height;
-  canvas.getContext('2d').drawImage(sourceCanvas, 0, 0);
-}
-
-// Randomize seed button
-els.btnRandSeed.addEventListener('click', () => {
-  const r = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0;
-  els.seedInput.value = String(r);
+// Seed helpers
+els.btnRandSeed.addEventListener('click',()=>{
+  const r=(crypto.getRandomValues(new Uint32Array(1))[0])>>>0;
+  els.seedInput.value=String(r);
 });
+
+els.chkEmbedSeed.addEventListener('change',()=>{
+  if(!els.chkEmbedSeed.checked){
+    els.noEmbedNote.innerHTML=' <span class="warn">Seed will NOT be embedded. You must remember and share the seed/passcode for decoding.</span>';
+  }else{
+    els.noEmbedNote.textContent='';
+  }
+});
+
+function drawCanvas(canvas,srcC){
+  canvas.width=srcC.width; canvas.height=srcC.height;
+  canvas.getContext('2d').drawImage(srcC,0,0);
+}
 
 // Prepare (grayscale + dither)
 els.btnPrep.addEventListener('click', () => {
   if (!coverImg || !hiddenImg) { alert("Please upload both cover and hidden images."); return; }
+
+  // Target = cover size
   const coverC = makeCanvasLike(coverImg);
-  const hiddenResized = resizeImageTo(hiddenImg, coverC.width, coverC.height);
-  const hidData = getImageData(hiddenResized);
 
-  // Detect pure BW? If every pixel 0 or 255 and R=G=B, skip gray + dither.
-  let isBW = true, isGray = true;
-  for (let i = 0; i < hidData.data.length; i += 4) {
-    const r = hidData.data[i], g = hidData.data[i+1], b = hidData.data[i+2];
-    if (!(r === g && g === b)) isGray = false;
-    if (!((r === 0 && g === 0 && b === 0) || (r === 255 && g === 255 && b === 255))) isBW = false;
-    if (!isGray && !isBW) break;
-  }
-  let bw = hidData;
-  if (!isBW) {
-    if (!isGray) bw = toGrayscaleLuma(bw);
-    bw = floydSteinbergBW(bw);
+  // 1) Start from hidden image at native size
+  const hiddenNative = canvasFromImage(hiddenImg);
+
+  // 2) Convert to grayscale FIRST (native size)
+  let grayNative = getImageData(hiddenNative);
+  grayNative = toGrayscaleLuma(grayNative);
+  putImageData(hiddenNative, grayNative);
+
+  // If source already looks near-binary, preserve hard edges by disabling smoothing
+  const { isBW: lookedBW } = isNearBW(grayNative, 8);
+
+  // 3) Resize the grayscale canvas to match cover
+  const hiddenResizedGray = resizeCanvas(
+    hiddenNative,
+    coverC.width,
+    coverC.height,
+    /* smoothing */ !lookedBW
+  );
+
+  // 4) Decide BW vs Dither on the resized grayscale
+  let hidData = getImageData(hiddenResizedGray);
+  const { isBW: isBWAfterResize, isGray: isGrayAfterResize } = isNearBW(hidData, 8);
+
+  if (isBWAfterResize) {
+    // Already binary after resize: hard threshold, no dithering
+    hidData = thresholdBW(hidData, 128);
   } else {
-    // Normalize exactly to 0/255
-    const d = bw.data;
-    for (let i=0;i<d.length;i+=4){ const v=d[i]>127?255:0; d[i]=d[i+1]=d[i+2]=v; }
+    // Mixed tones: (safety) ensure grayscale, then Floyd-Steinberg dither
+    if (!isGrayAfterResize) hidData = toGrayscaleLuma(hidData);
+    hidData = floydSteinbergBW(hidData);
   }
 
-  preparedHiddenBW = bw;
+  // 5) Preview + store
+  preparedHiddenBW = hidData;
   const c = document.createElement('canvas');
-  putImageData(c, bw);
+  putImageData(c, hidData);
   drawCanvas(els.hiddenDitherCanvas, c);
 
   els.btnEncode.disabled = false;
 });
 
 // Encode
-els.btnEncode.addEventListener('click', () => {
-  if (!preparedHiddenBW) { alert("Prepare the hidden image first."); return; }
+els.btnEncode.addEventListener('click',()=>{
+  if(!preparedHiddenBW){alert("Prepare the hidden image first."); return;}
 
-  // Seed handling
-  let seedStr = els.seedInput.value.trim();
+  // Seed handling (number or string)
+  let seedStr=els.seedInput.value.trim();
   let seedU32;
-  if (seedStr.length === 0) {
-    seedU32 = crypto.getRandomValues(new Uint32Array(1))[0] >>> 0;
-    els.seedInput.value = String(seedU32);
-  } else {
-    if (/^\d+$/.test(seedStr)) seedU32 = (parseInt(seedStr, 10) >>> 0);
-    else seedU32 = fnv1a32(seedStr);
+  if(seedStr.length===0){
+    seedU32=(crypto.getRandomValues(new Uint32Array(1))[0])>>>0;
+    els.seedInput.value=String(seedU32);
+    if(!els.chkEmbedSeed.checked){
+      alert("No seed entered and embedding is off. A random seed was generated—save or share it to enable decoding.");
+    }
+  }else{
+    if(/^\d+$/.test(seedStr)) seedU32=(parseInt(seedStr,10)>>>0);
+    else seedU32=fnv1a32(seedStr);
   }
 
-  const coverC = makeCanvasLike(coverImg);
-  const stegoData = getImageData(coverC);
+  const coverC=makeCanvasLike(coverImg);
+  const stegoData=getImageData(coverC);
 
-  try {
-    const out = encodeLSB(stegoData, preparedHiddenBW, seedU32);
-    const outCanvas = document.createElement('canvas');
-    putImageData(outCanvas, out);
-    drawCanvas(els.stegoCanvas, outCanvas);
-    stegoImageData = out;
-    els.btnDownload.disabled = false;
-  } catch (e) {
-    alert(e.message);
-  }
+  try{
+    const out=encodeLSB(stegoData, preparedHiddenBW, seedU32, els.chkEmbedSeed.checked);
+    const outCanvas=document.createElement('canvas');
+    putImageData(outCanvas,out);
+    drawCanvas(els.stegoCanvas,outCanvas);
+    stegoImageData=out;
+    els.btnDownload.disabled=false;
+  }catch(e){alert(e.message);}
 });
 
 // Download
-els.btnDownload.addEventListener('click', () => {
-  if (!stegoImageData) return;
-  const c = document.createElement('canvas');
-  putImageData(c, stegoImageData);
-  c.toBlob(blob => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'ghostmark.png';
+els.btnDownload.addEventListener('click',()=>{
+  if(!stegoImageData) return;
+  const c=document.createElement('canvas');
+  putImageData(c,stegoImageData);
+  c.toBlob(blob=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='ghostmark.png';
     a.click();
-  }, 'image/png');
+  },'image/png');
 });
 
 /* ----- Decode flow ----- */
-let stegoInImage = null;
-els.stegoInFile.addEventListener('change', async e => {
-  const f = e.target.files[0]; if (!f) return;
-  stegoInImage = await loadImageFile(f);
+let stegoInImage=null;
+els.stegoInFile.addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  stegoInImage=await loadImageFile(f);
   drawCanvas(els.stegoInCanvas, makeCanvasLike(stegoInImage));
-  els.btnDecode.disabled = false;
-  els.recoveredSeed.textContent = "-";
-  const ctx = els.decodedCanvas.getContext('2d');
-  ctx.clearRect(0,0,els.decodedCanvas.width, els.decodedCanvas.height);
+  els.btnDecode.disabled=false;
+  els.recoveredSeed.textContent='-';
+  const ctx=els.decodedCanvas.getContext('2d'); ctx.clearRect(0,0,els.decodedCanvas.width,els.decodedCanvas.height);
 });
 
-els.btnDecode.addEventListener('click', () => {
-  if (!stegoInImage) return;
-  const c = makeCanvasLike(stegoInImage);
-  const data = getImageData(c);
-  try {
-    const { imageData, seed } = decodeLSB(data);
-    const outC = document.createElement('canvas');
-    putImageData(outC, imageData);
-    drawCanvas(els.decodedCanvas, outC);
-    els.recoveredSeed.textContent = String(seed >>> 0);
-  } catch (e) {
-    alert(e.message);
+// Decode mode toggle
+[els.decModeAuto, els.decModeManual].forEach(r=>{
+  r.addEventListener('change',()=>{
+    const manual=els.decModeManual.checked;
+    els.manualSeed.disabled=!manual;
+  });
+});
+
+els.btnDecode.addEventListener('click',()=>{
+  if(!stegoInImage) return;
+  const c=makeCanvasLike(stegoInImage);
+  const data=getImageData(c);
+
+  let seedOverride=null;
+  if(els.decModeManual.checked){
+    const s=els.manualSeed.value.trim();
+    if(!s){ alert("Enter a manual seed/passcode."); return; }
+    seedOverride = (/^\d+$/.test(s)) ? (parseInt(s,10)>>>0) : fnv1a32(s);
   }
+
+  try{
+    const {imageData, seed, mode}=decodeLSB(data, seedOverride);
+    const outC=document.createElement('canvas');
+    putImageData(outC,imageData);
+    drawCanvas(els.decodedCanvas,outC);
+    els.recoveredSeed.textContent = (mode==="manual" ? ("manual " + (seed>>>0)) : ("auto " + (seed>>>0)));
+  }catch(e){ alert(e.message); }
 });
 </script>
 </body>
