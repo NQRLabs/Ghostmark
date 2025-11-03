@@ -1,19 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ghostmark - Seeded LSB Image Steganography</title>
+  <!--
+    MIT License
+    
+    Copyright (c) 2025 NQR
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+  -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ghostmark</title>
+
+  <!-- Favicon links -->
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/images/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/images/android-chrome-512x512.png">
+  
 <style>
   :root {
-    --bg: #0e0f12; --fg: #e7e7ea; --muted:#a6a7ad; --accent:#7bdcff; --card:#15171c; --border:#272a31;
+    --bg: #0c1020;
+    --fg: #e7e7ea; 
+    --muted:#a6a7ad;
+    --accent: #1fc9aa;
+    --accent-hover: #18b79a;
+    --accent-dark: #17b399;
+    --card: #151c3b;
+    --border: #2b3868;
+    --ink: #eef1ff;
+    --dim: #b9c6ef;
+    --input-bg: #0f1432;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
-    margin:0; font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-    background: radial-gradient(1200px 600px at 20% -10%, #1b1f28 0%, var(--bg) 60%) fixed var(--bg); color: var(--fg);
-    display:flex; align-items:flex-start; justify-content:center; padding:24px;
+    margin:0; 
+    font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    background: radial-gradient(1200px 600px at 20% -10%, #1b1f28 0%, var(--bg) 60%) fixed var(--bg); 
+    color: var(--fg);
+    display:flex; 
+    align-items:flex-start; 
+    justify-content:center; 
+    padding: 0;
   }
   .wrap { width:min(1100px, 100%); }
   h1 { margin:0 0 8px; font-weight:700; letter-spacing:.3px; }
@@ -24,11 +70,63 @@
   }
   .tabbtn.active { outline:2px solid var(--accent); }
   .tabbtn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-  .card {
-    background:linear-gradient(180deg, #161922, #111318); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px;
+  /* HEADER */
+  .app-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 12px;
   }
-  .grid { display:grid; gap:16px; grid-template-columns: 1fr 1fr; }
-  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+
+  .app-logo {
+    max-width: 200px; 
+    height: auto;
+    margin: 0;
+    display: block;
+    object-fit: contain;
+  }
+
+  .app-title {
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .app-subtitle {
+    color: var(--dim);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0 0 2px 0;
+  }
+
+  .card {
+    background:linear-gradient(180deg, #161922, #111318); 
+    border:1px solid var(--border); 
+    border-radius:16px; 
+    padding:16px; 
+    margin-bottom:16px;
+  }
+  .controls {
+    background: var(--card);
+    border:1px solid var(--border); 
+    border-radius:16px; 
+    padding:16px; 
+    margin-bottom:16px;
+  }
+  .grid { 
+    display:grid; 
+    gap:16px; 
+    grid-template-columns: 1fr 1fr; 
+  }
+  .row { 
+    display:flex; 
+    gap:12px; 
+    flex-wrap:wrap; 
+    align-items:center; 
+    margin: 10px 0 0;
+  }
   label.upl { display:inline-block; border:1px dashed var(--border); padding:10px 12px; border-radius:12px; cursor:pointer; background:#0f1218; }
   input[type="file"] { display:none; }
   input[type="number"], input[type="text"] {
@@ -49,16 +147,97 @@
   .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#1b1f27; padding:2px 6px; border-radius:6px; border:1px solid #2a2e38; }
   .foot { color:var(--muted); font-size:12px; margin-top:8px; }
   .warn { color:#ffb3b3; }
+
+    /* FOOTER / LICENSE */
+    .license-footer {
+      margin-top: 30px;
+      margin-bottom: 20px;
+      padding: 10px 8px;
+      font-size: 0.68rem;
+      color: var(--dim);
+      opacity: 0.7;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+      text-align: center;
+    }
+
+    .license-footer:hover {
+      opacity: 1;
+    }
+
+    .license-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 999;
+    }
+
+    .license-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 520px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      z-index: 1000;
+      text-align: center;
+    }
+
+    .license-modal.show,
+    .license-overlay.show {
+      display: block;
+    }
+
+    .license-modal-header {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-right: 32px;
+      gap: 12px;
+    }
+
+    .license-modal-title {
+      margin: 0;
+      font-size: 1rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    .license-modal-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: var(--dim);
+      line-height: 1;
+    }
+
+    .small-muted {
+      color: var(--dim);
+      font-size: 0.7rem;
+    }
+
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Ghostmark</h1>
-  <div class="sub">
-    Seeded, randomized LSB steganography with grayscale plus Floyd-Steinberg dithering. Encode and decode in your browser.
-    <span class="hint"><strong>Privacy:</strong> All processing happens locally in your browser. Images are not uploaded.</span>
-  </div>
+  <header class="app-header">
+    <img src="assets/images/logo.png" alt="Ghostmark Logo" class="app-logo">
+    <h2 class="app-title">Ghostmark</h2>
+    <p class="app-subtitle">A lightweight image steganography tool by NQR</p>
+  </header>
 
   <div class="tabs">
     <button class="tabbtn active" data-tab="encode">Encode</button>
@@ -66,7 +245,11 @@
   </div>
 
   <!-- ENCODE -->
-  <section id="encode" class="card">
+  <section id="encode" class="controls">
+    <span class="hint"><strong>Privacy:</strong> All processing happens locally in your browser. Images are not uploaded.</span>
+    <div class="row">
+      Seeded, randomized LSB steganography with grayscale plus Floyd-Steinberg dithering. Encode and decode in your browser.
+    </div>
     <div class="row">
       <label class="upl">Upload Cover Image <input id="coverFile" type="file" accept="image/*"></label>
       <label class="upl">Upload Hidden Image <input id="hiddenFile" type="file" accept="image/*"></label>
@@ -105,7 +288,10 @@
   </section>
 
   <!-- DECODE -->
-  <section id="decode" class="card" style="display:none">
+  <section id="decode" class="controls" style="display:none">
+    <div class="sub">
+      <span class="hint"><strong>Privacy:</strong> All processing happens locally in your browser. Images are not uploaded.</span>
+    </div>
     <div class="row">
       <label class="upl">Upload Stego Image <input id="stegoInFile" type="file" accept="image/*"></label>
       <button id="btnDecode" class="primary" disabled>Decode</button>
@@ -131,7 +317,46 @@
       </div>
     </div>
   </section>
+  <!-- FOOTER / LICENSE -->
+  <footer class="license-footer" id="licenseLink">
+    MIT License • Developed by NQR • Click to view
+  </footer>
+
+  <div class="license-overlay" id="licenseOverlay"></div>
+  <div class="license-modal" id="licenseModal" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
+    <div class="license-modal-header">
+      <h3 class="license-modal-title" id="licenseTitle">MIT License</h3>
+      <span class="license-modal-close" id="licenseClose" aria-label="Close license dialog">&times;</span>
+    </div>
+    <pre class="small-muted" style="text-align:center; white-space:pre-wrap; margin-top:14px;">
+MIT License
+
+Copyright (c) 2025 NQR
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+    </pre>
+  </div>
 </div>
+
 
 <script>
 /* ---------- Utilities ---------- */
@@ -571,6 +796,26 @@ els.btnDownloadHidden.addEventListener('click', () => {
     a.click();
   }, 'image/png');
 });
+    // simple license modal behavior
+    const licenseLink = document.getElementById('licenseLink');
+    const licenseOverlay = document.getElementById('licenseOverlay');
+    const licenseModal = document.getElementById('licenseModal');
+    const licenseClose = document.getElementById('licenseClose');
+
+    function openLicense() {
+      licenseOverlay.classList.add('show');
+      licenseModal.classList.add('show');
+    }
+
+    function closeLicense() {
+      licenseOverlay.classList.remove('show');
+      licenseModal.classList.remove('show');
+    }
+
+    licenseLink.addEventListener('click', openLicense);
+    licenseOverlay.addEventListener('click', closeLicense);
+    licenseClose.addEventListener('click', closeLicense);
+
 </script>
 </body>
 </html>
