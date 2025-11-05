@@ -4,7 +4,7 @@
 
 **Ghostmark** is a lightweight, browser-based steganography tool that hides one image inside another using seeded, randomized least significant bit encoding. The entire process runs locally in your browser for complete privacy and repeatable, verifiable results.
 
-[**View Live Demo**](nqrlabs.com/Ghostmark/)
+[**View Live Demo**](https://nqrlabs.com/Ghostmark/)
 
 ## Overview
 
