@@ -141,8 +141,23 @@
   button.primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   button.primary:hover { filter: brightness(1.05); }
   button:active { transform: translateY(1px); filter: brightness(0.95); }
-  .canvwrap { background:#0b0d12; border:1px solid var(--border); border-radius:12px; padding:8px; }
+  .canvwrap { background:#0b0d12; border:1px solid var(--border); border-radius:12px; padding:8px; position:relative; }
+  .canvwrap.interactive { cursor: crosshair; }
   canvas { width:100%; height:auto; display:block; border-radius:8px; background:#000; }
+  .selection-overlay { position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px; pointer-events: none; }
+  .selection-box { position: absolute; border: 2px solid var(--accent); box-shadow: 0 0 8px rgba(31, 201, 170, 0.6); pointer-events: all; }
+  .selection-handle { position: absolute; width: 12px; height: 12px; background: var(--accent); border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
+  .selection-handle.nw { top: -6px; left: -6px; cursor: nw-resize; }
+  .selection-handle.ne { top: -6px; right: -6px; cursor: ne-resize; }
+  .selection-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+  .selection-handle.se { bottom: -6px; right: -6px; cursor: se-resize; }
+  .selection-handle.n { top: -6px; left: 50%; margin-left: -6px; cursor: n-resize; }
+  .selection-handle.s { bottom: -6px; left: 50%; margin-left: -6px; cursor: s-resize; }
+  .selection-handle.w { top: 50%; left: -6px; margin-top: -6px; cursor: w-resize; }
+  .selection-handle.e { top: 50%; right: -6px; margin-top: -6px; cursor: e-resize; }
+  .selection-rotate { position: absolute; top: -30px; left: 50%; margin-left: -12px; width: 24px; height: 24px; background: var(--accent); border: 2px solid #fff; border-radius: 50%; cursor: grab; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #000; font-weight: bold; user-select: none; }
+  .selection-rotate:active { cursor: grabbing; }
+  .selection-box-inner { position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: move; }
   .hint { color:var(--muted); font-size:12px; }
   .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#1b1f27; padding:2px 6px; border-radius:6px; border:1px solid #2a2e38; }
   .foot { color:var(--muted); font-size:12px; margin-top:8px; }
@@ -251,9 +266,9 @@
       Seeded, randomized LSB steganography with grayscale plus Floyd-Steinberg dithering. Encode and decode in your browser.
     </div>
     <div class="row">
-      <label class="upl">Upload Cover Image <input id="coverFile" type="file" accept="image/*"></label>
-      <label class="upl">Upload Hidden Image <input id="hiddenFile" type="file" accept="image/*"></label>
-      <span class="hint">Tip: the hidden image will be resized to match the cover dimensions.</span>
+      <label class="upl">Choose Cover Image <input id="coverFile" type="file" accept="image/*"></label>
+      <label class="upl">Choose Hidden Image <input id="hiddenFile" type="file" accept="image/*"></label>
+      <span class="hint">Tip: After choosing images, use the selection box in the Stego preview to position and resize the hidden image. Drag corners/edges to resize (hold Shift to lock aspect ratio). Drag the center to move.</span>
     </div>
     <div class="row">
       <span>Seed:</span>
@@ -266,19 +281,50 @@
       <span class="hint warn">If checked, the decoder must manually enter the same seed.</span>
     </div>
     <div class="row">
-      <button id="btnPrep" class="primary">1) Prepare Hidden (Grayscale + Dither)</button>
-      <button id="btnEncode" disabled>2) Encode into Cover</button>
-      <button id="btnDownload" disabled>Download Stego PNG</button>
+      <label><input type="checkbox" id="chkFlipH" /> Flip horizontally</label>
+      <label><input type="checkbox" id="chkFlipV" /> Flip vertically</label>
+      <span class="hint">Flip the hidden image before encoding.</span>
+    </div>
+    <div class="row">
+      <span>Rotation:</span>
+      <input id="rotationSlider" type="range" min="0" max="360" value="0" step="1" style="min-width:200px;" />
+      <input id="rotationValue" type="number" min="0" max="360" value="0" step="1" style="width:80px;" />
+      <span class="hint">Rotate the hidden image (degrees).</span>
+    </div>
+    <div class="row">
+      <span>Strength:</span>
+      <input id="strengthSlider" type="range" min="0" max="1" value="1" step="0.01" style="min-width:200px;" />
+      <input id="strengthValue" type="number" min="0" max="1" value="1" step="0.01" style="width:80px;" />
+      <span class="hint">0 = do not embed; 1 = full embed. Intermediate values randomly keep some original LSBs.</span>
+    </div>
+    <div class="row">
+      <button id="btnDownload" disabled>Save Stego PNG</button>
     </div>
 
     <div class="grid">
       <div>
-        <h3>Hidden (BW Dither Preview)</h3>
-        <div class="canvwrap"><canvas id="hiddenDitherCanvas"></canvas></div>
+        <h3>Stego Image Preview</h3>
+        <div class="canvwrap" id="stegoCanvasWrap">
+          <canvas id="stegoCanvas"></canvas>
+          <div class="selection-overlay" id="selectionOverlay" style="display:none;">
+            <div class="selection-box" id="selectionBox">
+              <div class="selection-box-inner" id="selectionBoxInner"></div>
+              <div class="selection-rotate" id="selectionRotate" title="Drag to rotate">⟲</div>
+              <div class="selection-handle nw"></div>
+              <div class="selection-handle ne"></div>
+              <div class="selection-handle sw"></div>
+              <div class="selection-handle se"></div>
+              <div class="selection-handle n"></div>
+              <div class="selection-handle s"></div>
+              <div class="selection-handle w"></div>
+              <div class="selection-handle e"></div>
+            </div>
+          </div>
+        </div>
       </div>
       <div>
-        <h3>Stego (Final Preview)</h3>
-        <div class="canvwrap"><canvas id="stegoCanvas"></canvas></div>
+        <h3>Hidden Image Preview</h3>
+        <div class="canvwrap"><canvas id="hiddenDitherCanvas"></canvas></div>
       </div>
     </div>
     <div class="foot">
@@ -293,9 +339,9 @@
       <span class="hint"><strong>Privacy:</strong> All processing happens locally in your browser. Images are not uploaded.</span>
     </div>
     <div class="row">
-      <label class="upl">Upload Stego Image <input id="stegoInFile" type="file" accept="image/*"></label>
+      <label class="upl">Choose Stego Image <input id="stegoInFile" type="file" accept="image/*"></label>
       <button id="btnDecode" class="primary" disabled>Decode</button>
-      <button id="btnDownloadHidden" disabled>Download Hidden PNG</button>
+      <button id="btnDownloadHidden" disabled>Save Hidden PNG</button>
     </div>
     <div class="row">
       <span>Recovered Seed:</span>
@@ -308,12 +354,12 @@
     </div>
     <div class="grid">
       <div>
-        <h3>Decoded Hidden (BW)</h3>
-        <div class="canvwrap"><canvas id="decodedCanvas"></canvas></div>
+        <h3>Stego Image Preview</h3>
+        <div class="canvwrap"><canvas id="stegoInCanvas"></canvas></div>
       </div>
       <div>
-        <h3>Stego Image (Input Preview)</h3>
-        <div class="canvwrap"><canvas id="stegoInCanvas"></canvas></div>
+        <h3>Decoded Hidden Image Preview</h3>
+        <div class="canvwrap"><canvas id="decodedCanvas"></canvas></div>
       </div>
     </div>
   </section>
@@ -343,6 +389,53 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <script>
 /* ---------- Utilities ---------- */
+function buildStrengthPreviewData(seedU32, coverData, selBox) {
+  const boxX = Math.round(selBox.x);
+  const boxY = Math.round(selBox.y);
+  const boxW = Math.round(selBox.width);
+  const boxH = Math.round(selBox.height);
+  const coverW = coverData.width;
+  const coverH = coverData.height;
+  const out = new ImageData(boxW, boxH);
+  const H = preparedHiddenBW.data;
+  const S = coverData.data;
+  const rng = mulberry32(seedU32);
+
+  for (let y = 0; y < coverH; y++) {
+    for (let x = 0; x < coverW; x++) {
+      // Skip header pixels from parity?
+      if (isReservedPixel(x, y)) continue;
+      const chan = Math.floor(rng() * 3);
+      const whiteParity = (rng() < 0.5) ? 0 : 1;
+
+      if (x >= boxX && x < boxX + boxW && y >= boxY && y < boxY + boxH) {
+        const hiddenIdx = ((y - boxY) * boxW + (x - boxX)) * 4;
+        const hiddenWhite = H[hiddenIdx] > 127;
+
+        const coverIdx = (y * coverW + x) * 4 + chan;
+        let v = S[coverIdx];
+
+        const maskRand = ((x * 73856093) ^ (y * 19349663) ^ seedU32) >>> 0;
+        const maskVal = (maskRand & 0xffffff) / 0x1000000;
+        let desiredParity;
+        if (maskVal < embedStrength) {
+          desiredParity = hiddenWhite ? whiteParity : (1 - whiteParity);
+        } else {
+          const coverBit = v & 1;
+          desiredParity = coverBit ? whiteParity : (1 - whiteParity);
+        }
+        if ((v & 1) !== desiredParity) v = (v === 255) ? 254 : (v + 1);
+
+        const val = (v & 1) === whiteParity ? 255 : 0;
+        out.data[hiddenIdx] = out.data[hiddenIdx+1] = out.data[hiddenIdx+2] = val;
+        out.data[hiddenIdx+3] = 255;
+      }
+    }
+  }
+
+  return out;
+}
+
 function loadImageFile(file) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -377,6 +470,14 @@ function putImageData(canvas, imgData) {
   canvas.height = imgData.height;
   ctx.putImageData(imgData, 0, 0);
 }
+function cloneImageData(imgData) {
+  return new ImageData(new Uint8ClampedArray(imgData.data), imgData.width, imgData.height);
+}
+
+let pendingHiddenPreview = null;
+let hiddenPreviewTimer = null;
+let hiddenPreviewJob = null;
+let hiddenPreviewScheduled = false;
 /* 32-bit FNV-1a hash for seed strings -> u32 */
 function fnv1a32(str) {
   let h = 0x811c9dc5 >>> 0;
@@ -404,6 +505,7 @@ function toGrayscaleLuma(imgData) {
     const r = d[i], g = d[i+1], b = d[i+2];
     const y = (0.299 * r + 0.587 * g + 0.114 * b); // BT.601 luma
     d[i] = d[i+1] = d[i+2] = y;
+    // Keep alpha channel as-is (d[i+3] unchanged)
   }
   return imgData;
 }
@@ -518,6 +620,102 @@ function encodeLSB(stegoImgData, bwHiddenImgData, seedU32, writeHeader) {
   }
   return stegoImgData;
 }
+
+// New encoding function that uses selection box
+// Note: This maintains PRNG sync by advancing for ALL pixels but only encoding within selection box
+function encodeLSBWithSelection(stegoImgData, bwHiddenImgData, seedU32, writeHeader, selBox) {
+  const coverW = stegoImgData.width;
+  const coverH = stegoImgData.height;
+  const strength = embedStrength;
+
+  // Write header to top-left 8x8 if requested
+  if (writeHeader) writeSeedLSB(stegoImgData, seedU32);
+
+  // Get the selection box bounds (rounded to integers)
+  const boxX = Math.round(selBox.x);
+  const boxY = Math.round(selBox.y);
+  const boxW = Math.round(selBox.width);
+  const boxH = Math.round(selBox.height);
+  const angleRad = ((selBox.rotation || 0) * Math.PI) / 180;
+  const cosA = Math.cos(angleRad);
+  const sinA = Math.sin(angleRad);
+  const centerX = boxX + boxW / 2;
+  const centerY = boxY + boxH / 2;
+
+  // Validate bounds
+  if (boxX < 0 || boxY < 0 || boxX + boxW > coverW || boxY + boxH > coverH) {
+    throw new Error("Selection box extends beyond cover image boundaries.");
+  }
+
+  // The hidden image should already be transformed and sized to match the selection box
+  if (bwHiddenImgData.width !== boxW || bwHiddenImgData.height !== boxH) {
+    throw new Error("Hidden image dimensions must match selection box dimensions.");
+  }
+
+  const rng = mulberry32(seedU32);
+  const S = stegoImgData.data;
+  const H = bwHiddenImgData.data;
+
+  // Iterate through ALL pixels to maintain PRNG sync, but only encode within selection box
+  for (let y = 0; y < coverH; y++) {
+    for (let x = 0; x < coverW; x++) {
+      // Skip header pixels
+      if (writeHeader && isReservedPixel(x, y)) continue;
+
+      const coverIdx = (y * coverW + x) * 4;
+
+      // Always consume PRNG to maintain sync
+      const chan = Math.floor(rng() * 3); // 0=R,1=G,2=B
+      const whiteParity = (rng() < 0.5) ? 0 : 1; // even/odd for white
+
+      // Only encode if within selection box
+      const relX = x - centerX;
+      const relY = y - centerY;
+      const localX = relX * cosA + relY * sinA + boxW / 2;
+      const localY = -relX * sinA + relY * cosA + boxH / 2;
+
+      if (localX >= 0 && localX < boxW && localY >= 0 && localY < boxH) {
+        const hiddenX = Math.floor(localX);
+        const hiddenY = Math.floor(localY);
+        const hiddenIdx = (hiddenY * boxW + hiddenX) * 4;
+
+        const stegoIdx = coverIdx + chan;
+        let v = S[stegoIdx];
+
+        // Check if hidden pixel is transparent (alpha < 128)
+        const hiddenAlpha = H[hiddenIdx + 3];
+        const isTransparent = (hiddenAlpha < 128);
+
+        // Deterministic mask per pixel to avoid advancing PRNG (keeps decode aligned)
+        const maskRand = ((x * 73856093) ^ (y * 19349663) ^ seedU32) >>> 0;
+        const maskVal = (maskRand & 0xffffff) / 0x1000000;
+
+        if (!isTransparent && maskVal < strength) {
+          // Encode hidden image pixel
+          const hiddenWhite = H[hiddenIdx] > 127;
+          const desiredParity = hiddenWhite ? whiteParity : (1 - whiteParity);
+          if ((v & 1) !== desiredParity) v = (v === 255) ? 254 : (v + 1);
+        } else {
+          // Transparent or outside strength mask: align parity to show cover LSB
+          const coverBit = (v & 1);
+          const desiredParity = coverBit ? whiteParity : (1 - whiteParity);
+          if ((v & 1) !== desiredParity) v = (v === 255) ? 254 : (v + 1);
+        }
+        S[stegoIdx] = v;
+      } else {
+        // Outside selection: align parity so decoder recovers the cover LSB
+        const stegoIdx = coverIdx + chan;
+        const coverBit = (S[stegoIdx] & 1);
+        const desiredParity = coverBit ? whiteParity : (1 - whiteParity);
+        let v = S[stegoIdx];
+        if ((v & 1) !== desiredParity) v = (v === 255) ? 254 : (v + 1);
+        S[stegoIdx] = v;
+      }
+    }
+  }
+
+  return stegoImgData;
+}
 function decodeLSB_withSeed(stegoImgData, seed) {
   const w = stegoImgData.width, h = stegoImgData.height;
   const rng = mulberry32(seed);
@@ -573,11 +771,20 @@ const els = {
   seedInput: document.getElementById('seedInput'),
   btnRandSeed: document.getElementById('btnRandSeed'),
   chkNoHeader: document.getElementById('chkNoHeader'),
-  btnPrep: document.getElementById('btnPrep'),
-  btnEncode: document.getElementById('btnEncode'),
+  chkFlipH: document.getElementById('chkFlipH'),
+  chkFlipV: document.getElementById('chkFlipV'),
+  rotationSlider: document.getElementById('rotationSlider'),
+  rotationValue: document.getElementById('rotationValue'),
+  strengthSlider: document.getElementById('strengthSlider'),
+  strengthValue: document.getElementById('strengthValue'),
   btnDownload: document.getElementById('btnDownload'),
   hiddenDitherCanvas: document.getElementById('hiddenDitherCanvas'),
   stegoCanvas: document.getElementById('stegoCanvas'),
+  stegoCanvasWrap: document.getElementById('stegoCanvasWrap'),
+  selectionOverlay: document.getElementById('selectionOverlay'),
+  selectionBox: document.getElementById('selectionBox'),
+  selectionBoxInner: document.getElementById('selectionBoxInner'),
+  selectionRotate: document.getElementById('selectionRotate'),
   stegoInFile: document.getElementById('stegoInFile'),
   stegoInCanvas: document.getElementById('stegoInCanvas'),
   btnDecode: document.getElementById('btnDecode'),
@@ -590,7 +797,39 @@ const els = {
 
 let coverImg = null, hiddenImg = null;
 let preparedHiddenBW = null;
+let hiddenGrayOriginal = null;
 let stegoImageData = null;
+let decodedRawData = null;
+let embedStrength = 1.0;
+
+// Selection box state
+let selectionState = {
+  x: 0, y: 0, width: 0, height: 0,  // in canvas pixels
+  originalAspectRatio: 1,
+  rotation: 0,
+  flipH: false,
+  flipV: false,
+  active: false
+};
+
+// Drag state
+let dragState = {
+  isDragging: false,
+  dragType: null, // 'move', 'nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w', 'rotate'
+  startX: 0, startY: 0,
+  startBox: null,
+  shiftPressed: false
+};
+
+function updateEncodeButtonState() {
+  // Button removed; retain readiness check for potential future UI hooks
+  return !!(coverImg && hiddenImg && preparedHiddenBW && selectionState.active);
+}
+
+function autoEncodeIfReady() {
+  if (!coverImg || !hiddenImg || !preparedHiddenBW || !selectionState.active) return;
+  performEncode(true);
+}
 
 /* Tabs */
 els.tabs.forEach(btn => {
@@ -608,20 +847,381 @@ els.chkManualSeedDecode.addEventListener('change', () => {
   els.manualSeedInput.disabled = !els.chkManualSeedDecode.checked;
 });
 
+// Auto-encode when seed or header toggle changes
+els.seedInput.addEventListener('input', () => autoEncodeIfReady());
+els.chkNoHeader.addEventListener('change', () => autoEncodeIfReady());
+
+/* Rotation slider sync */
+els.rotationSlider.addEventListener('input', () => {
+  const val = parseInt(els.rotationSlider.value, 10);
+  els.rotationValue.value = val;
+  selectionState.rotation = val;
+  updateSelectionBoxDisplay();
+});
+els.rotationSlider.addEventListener('change', () => {
+  recomputeHiddenFromGray();
+});
+els.rotationValue.addEventListener('input', () => {
+  let val = parseInt(els.rotationValue.value, 10);
+  if (isNaN(val)) val = 0;
+  val = Math.max(0, Math.min(360, val));
+  els.rotationSlider.value = val;
+  els.rotationValue.value = val;
+  selectionState.rotation = val;
+  updateSelectionBoxDisplay();
+});
+els.rotationValue.addEventListener('change', () => {
+  recomputeHiddenFromGray();
+});
+els.rotationValue.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    recomputeHiddenFromGray();
+  }
+});
+
+/* Flip checkboxes */
+els.chkFlipH.addEventListener('change', () => {
+  selectionState.flipH = els.chkFlipH.checked;
+  recomputeHiddenFromGray();
+});
+els.chkFlipV.addEventListener('change', () => {
+  selectionState.flipV = els.chkFlipV.checked;
+  recomputeHiddenFromGray();
+});
+
+/* Strength slider */
+function syncStrength(val) {
+  embedStrength = Math.max(0, Math.min(1, val));
+  els.strengthSlider.value = embedStrength;
+  els.strengthValue.value = embedStrength.toFixed(2);
+  updateHiddenPreview();
+  autoEncodeIfReady();
+}
+els.strengthSlider.addEventListener('input', () => {
+  syncStrength(parseFloat(els.strengthSlider.value));
+});
+els.strengthValue.addEventListener('input', () => {
+  const v = parseFloat(els.strengthValue.value);
+  if (!isNaN(v)) syncStrength(v);
+});
+
+/* ---------- Selection Box Helpers ---------- */
+function getCanvasRect() {
+  // Returns canvas position and scale relative to display
+  const rect = els.stegoCanvas.getBoundingClientRect();
+  const canvasWidth = els.stegoCanvas.width;
+  const canvasHeight = els.stegoCanvas.height;
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+    scaleX: canvasWidth / rect.width,
+    scaleY: canvasHeight / rect.height
+  };
+}
+
+function initSelectionBox() {
+  if (!coverImg || !hiddenImg) return;
+
+  const coverCanvas = makeCanvasLike(coverImg);
+  const coverW = coverCanvas.width;
+  const coverH = coverCanvas.height;
+
+  // Get hidden image aspect ratio
+  const hiddenAspect = hiddenImg.width / hiddenImg.height;
+  selectionState.originalAspectRatio = hiddenAspect;
+
+  // Initialize centered box with hidden image aspect ratio
+  let boxW, boxH;
+  if (hiddenAspect > 1) {
+    // Landscape
+    boxW = Math.min(coverW * 0.8, coverW);
+    boxH = boxW / hiddenAspect;
+    if (boxH > coverH) {
+      boxH = coverH * 0.8;
+      boxW = boxH * hiddenAspect;
+    }
+  } else {
+    // Portrait or square
+    boxH = Math.min(coverH * 0.8, coverH);
+    boxW = boxH * hiddenAspect;
+    if (boxW > coverW) {
+      boxW = coverW * 0.8;
+      boxH = boxW / hiddenAspect;
+    }
+  }
+
+  selectionState.x = (coverW - boxW) / 2;
+  selectionState.y = (coverH - boxH) / 2;
+  selectionState.width = boxW;
+  selectionState.height = boxH;
+  selectionState.active = true;
+
+  updateSelectionBoxDisplay();
+  els.selectionOverlay.style.display = '';
+  updateEncodeButtonState();
+}
+
+// Recompute the dithered hidden image from the stored grayscale original.
+// Rotate BEFORE dithering so dithering patterns align with image features.
+function recomputeHiddenFromGray() {
+  if (!hiddenGrayOriginal || !selectionState.active) return;
+  if (!selectionState.width || !selectionState.height) return;
+  if (!coverImg) return;
+
+  // Apply flip/resize to grayscale (no rotation yet)
+  const grayCanvas = document.createElement('canvas');
+  putImageData(grayCanvas, hiddenGrayOriginal);
+
+  const baseTransformed = applyTransformations(
+    grayCanvas,
+    0,  // No rotation yet
+    selectionState.flipH,
+    selectionState.flipV,
+    selectionState.width,
+    selectionState.height
+  );
+
+  // Create a canvas sized to FULL COVER (not selection box) to avoid cropping when rotated
+  const coverCanvas = makeCanvasLike(coverImg);
+  const rotatedCanvas = document.createElement('canvas');
+  rotatedCanvas.width = coverCanvas.width;
+  rotatedCanvas.height = coverCanvas.height;
+  const ctx = rotatedCanvas.getContext('2d');
+
+  // Don't fill background - leave transparent (alpha will be preserved)
+  // Draw rotated image centered at selection box position
+  ctx.save();
+  const centerX = selectionState.x + selectionState.width / 2;
+  const centerY = selectionState.y + selectionState.height / 2;
+  ctx.translate(centerX, centerY);
+  ctx.rotate((selectionState.rotation * Math.PI) / 180);
+  ctx.drawImage(baseTransformed, -baseTransformed.width / 2, -baseTransformed.height / 2);
+  ctx.restore();
+
+  // Now dither the rotated grayscale (dithering sees the rotated orientation, preserves alpha)
+  let bwData = getImageData(rotatedCanvas);
+  bwData = floydSteinbergBW(bwData);
+  preparedHiddenBW = bwData;
+
+  updateHiddenPreview();
+  updateEncodeButtonState();
+  autoEncodeIfReady();
+}
+
+function updateSelectionBoxDisplay() {
+  if (!selectionState.active) return;
+
+  const canvasRect = getCanvasRect();
+  const displayScaleX = canvasRect.width / els.stegoCanvas.width;
+  const displayScaleY = canvasRect.height / els.stegoCanvas.height;
+
+  const left = selectionState.x * displayScaleX;
+  const top = selectionState.y * displayScaleY;
+  const width = selectionState.width * displayScaleX;
+  const height = selectionState.height * displayScaleY;
+
+  els.selectionBox.style.left = left + 'px';
+  els.selectionBox.style.top = top + 'px';
+  els.selectionBox.style.width = width + 'px';
+  els.selectionBox.style.height = height + 'px';
+  els.selectionBox.style.transformOrigin = 'center center';
+  els.selectionBox.style.transform = `rotate(${selectionState.rotation}deg)`;
+}
+
+function constrainSelectionBox() {
+  const coverCanvas = makeCanvasLike(coverImg);
+  const maxW = coverCanvas.width;
+  const maxH = coverCanvas.height;
+
+  // Constrain position
+  selectionState.x = Math.max(0, Math.min(maxW - selectionState.width, selectionState.x));
+  selectionState.y = Math.max(0, Math.min(maxH - selectionState.height, selectionState.y));
+
+  // Constrain size
+  if (selectionState.x + selectionState.width > maxW) {
+    selectionState.width = maxW - selectionState.x;
+  }
+  if (selectionState.y + selectionState.height > maxH) {
+    selectionState.height = maxH - selectionState.y;
+  }
+
+  // Ensure minimum size
+  selectionState.width = Math.max(20, selectionState.width);
+  selectionState.height = Math.max(20, selectionState.height);
+}
+
+function updateHiddenPreview() {
+  if (!preparedHiddenBW) return;
+
+  if (!coverImg || !selectionState.active) {
+    const baseCanvas = document.createElement('canvas');
+    putImageData(baseCanvas, preparedHiddenBW);
+    drawCanvas(els.hiddenDitherCanvas, baseCanvas);
+    return;
+  }
+
+  // Coalesce preview work to the latest state and schedule during idle to cut handler stalls
+  const seedPreview = (() => {
+    const s = els.seedInput.value.trim();
+    const parsed = s ? parseSeedFromInput(s) : 0;
+    return parsed === null ? 0 : parsed >>> 0;
+  })();
+  const writeHeader = !els.chkNoHeader.checked;
+  const sel = { ...selectionState };
+
+  hiddenPreviewJob = () => {
+    try {
+      // Use FULL resolution for encode+decode to exactly match decode page output
+      const coverCanvasFull = makeCanvasLike(coverImg);
+      const stegoData = getImageData(coverCanvasFull);
+
+      // preparedHiddenBW is now full cover-sized with rotated image already in place
+      // Use selection box that covers entire image with rotation=0
+      const selFullCover = { x: 0, y: 0, width: stegoData.width, height: stegoData.height, rotation: 0 };
+      const stegoSim = encodeLSBWithSelection(cloneImageData(stegoData), preparedHiddenBW, seedPreview, writeHeader, selFullCover);
+
+      // Decode using the same path as actual decode to ensure preview matches
+      let decodedImgData;
+      if (writeHeader) {
+        // When header is written, decode should use auto path (which skips header area)
+        const res = decodeLSB_auto(cloneImageData(stegoSim));
+        decodedImgData = res.imageData;
+      } else {
+        // When no header, use manual seed path
+        decodedImgData = decodeLSB_withSeed(cloneImageData(stegoSim), seedPreview);
+      }
+
+      if (!decodedImgData) return;
+
+      // Apply anti-dithering preview filter exactly like decode page
+      const rect = els.hiddenDitherCanvas.getBoundingClientRect();
+      const scaleX = rect.width / decodedImgData.width;
+      const scaleY = rect.height / decodedImgData.height;
+      const displayScale = Math.min(scaleX, scaleY);
+      // Use minimum kernel of 4 for smooth, silky appearance (reduces dithered splotchiness)
+      const kernel = Math.min(8, Math.max(4, Math.round(1/displayScale)));
+      const smoothedData = antiDitherPreview(decodedImgData, kernel);
+
+      const baseCanvas = document.createElement('canvas');
+      putImageData(baseCanvas, smoothedData);
+      drawCanvas(els.hiddenDitherCanvas, baseCanvas);
+    } catch (e) {
+      // leave previous preview intact
+    }
+  };
+
+  if (hiddenPreviewScheduled) return;
+  hiddenPreviewScheduled = true;
+
+  const runJob = () => {
+    hiddenPreviewScheduled = false;
+    const job = hiddenPreviewJob;
+    hiddenPreviewJob = null;
+    if (typeof job === 'function') job();
+  };
+
+  if ('requestIdleCallback' in window) {
+    if (hiddenPreviewTimer) cancelIdleCallback(hiddenPreviewTimer);
+    // Increase timeout to 300ms to reduce performance warnings
+    hiddenPreviewTimer = requestIdleCallback(runJob, { timeout: 300 });
+  } else {
+    if (hiddenPreviewTimer) clearTimeout(hiddenPreviewTimer);
+    hiddenPreviewTimer = setTimeout(runJob, 150);
+  }
+}
+
+function applyTransformations(sourceCanvas, rotation, flipH, flipV, targetW, targetH) {
+  const src = sourceCanvas;
+  let result = document.createElement('canvas');
+  let ctx = result.getContext('2d');
+
+  // Step 1: Flip if needed
+  if (flipH || flipV) {
+    result.width = src.width;
+    result.height = src.height;
+    ctx.save();
+    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+    ctx.drawImage(src, flipH ? -src.width : 0, flipV ? -src.height : 0);
+    ctx.restore();
+  } else {
+    result.width = src.width;
+    result.height = src.height;
+    ctx.drawImage(src, 0, 0);
+  }
+
+  // Step 2: Rotate if needed
+  if (rotation !== 0) {
+    const temp = result;
+    result = document.createElement('canvas');
+    ctx = result.getContext('2d');
+
+    const rad = (rotation * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(rad));
+    const sin = Math.abs(Math.sin(rad));
+    result.width = temp.width * cos + temp.height * sin;
+    result.height = temp.width * sin + temp.height * cos;
+
+    ctx.save();
+    ctx.translate(result.width / 2, result.height / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(temp, -temp.width / 2, -temp.height / 2);
+    ctx.restore();
+  }
+
+  // Step 3: Resize to target dimensions
+  const final = document.createElement('canvas');
+  final.width = Math.round(targetW);
+  final.height = Math.round(targetH);
+  const finalCtx = final.getContext('2d');
+  finalCtx.imageSmoothingEnabled = true;
+  finalCtx.imageSmoothingQuality = 'high';
+  finalCtx.drawImage(result, 0, 0, final.width, final.height);
+
+  return final;
+}
+
+function getCoverPatch(sel) {
+  if (!coverImg || !sel) return null;
+  const coverCanvas = makeCanvasLike(coverImg);
+  const ctx = coverCanvas.getContext('2d');
+  const x = Math.max(0, Math.round(sel.x));
+  const y = Math.max(0, Math.round(sel.y));
+  const w = Math.min(coverCanvas.width - x, Math.round(sel.width));
+  const h = Math.min(coverCanvas.height - y, Math.round(sel.height));
+  if (w <= 0 || h <= 0) return null;
+  const imgData = ctx.getImageData(x, y, w, h);
+  const d = imgData.data;
+  for (let i=0;i<d.length;i+=4) {
+    const gray = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+    d[i]=d[i+1]=d[i+2]=gray;
+    d[i+3]=255;
+  }
+  return imgData;
+}
+
 /* Load files */
 els.coverFile.addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
   coverImg = await loadImageFile(f);
-  preparedHiddenBW = null; stegoImageData = null;
-  els.btnEncode.disabled = true; els.btnDownload.disabled = true;
+  stegoImageData = null;
+  els.btnDownload.disabled = true;
+  selectionState.active = false;
+  els.selectionOverlay.style.display = 'none';
   drawCanvas(els.stegoCanvas, makeCanvasLike(coverImg));
+  if (hiddenImg) {
+    initSelectionBox();
+    recomputeHiddenFromGray();
+  }
+  updateEncodeButtonState();
 });
 els.hiddenFile.addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
   hiddenImg = await loadImageFile(f);
-  preparedHiddenBW = null; stegoImageData = null;
-  els.btnEncode.disabled = true; els.btnDownload.disabled = true;
-  drawCanvas(els.hiddenDitherCanvas, makeCanvasLike(hiddenImg));
+  preparedHiddenBW = null; hiddenGrayOriginal = null; stegoImageData = null;
+  els.btnDownload.disabled = true;
+  prepareHiddenImage();
 });
 
 function drawCanvas(canvas, sourceCanvas) {
@@ -630,44 +1230,287 @@ function drawCanvas(canvas, sourceCanvas) {
   canvas.getContext('2d').drawImage(sourceCanvas, 0, 0);
 }
 
+function integralImageGray(imgData) {
+  const w = imgData.width;
+  const h = imgData.height;
+  const d = imgData.data;
+  const integ = new Float32Array((w+1)*(h+1));
+  for (let y=1; y<=h; y++) {
+    let rowSum = 0;
+    for (let x=1; x<=w; x++) {
+      const v = d[((y-1)*w + (x-1))*4]; // use R (BW)
+      rowSum += v;
+      const idx = y*(w+1)+x;
+      integ[idx] = integ[idx-(w+1)] + rowSum;
+    }
+  }
+  return integ;
+}
+
+function antiDitherPreview(imgData, kernelSize) {
+  const w = imgData.width, h = imgData.height;
+  const out = new ImageData(w, h);
+  const integ = integralImageGray(imgData);
+  const half = Math.max(1, Math.floor(kernelSize/2));
+  for (let y=0;y<h;y++) {
+    const y1 = Math.max(0, y-half);
+    const y2 = Math.min(h-1, y+half);
+    for (let x=0;x<w;x++) {
+      const x1 = Math.max(0, x-half);
+      const x2 = Math.min(w-1, x+half);
+      const A = (y1)*(w+1)+x1;
+      const B = (y1)*(w+1)+x2+1;
+      const C = (y2+1)*(w+1)+x1;
+      const D = (y2+1)*(w+1)+x2+1;
+      const sum = integ[D]-integ[B]-integ[C]+integ[A];
+      const area = (x2-x1+1)*(y2-y1+1);
+      const v = sum/area;
+      const idx = (y*w + x)*4;
+      out.data[idx]=out.data[idx+1]=out.data[idx+2]=v;
+      out.data[idx+3]=255;
+    }
+  }
+  return out;
+}
+
+function renderDecodedPreview() {
+  if (!decodedRawData) {
+    const ctx = els.decodedCanvas.getContext('2d');
+    ctx.clearRect(0,0,els.decodedCanvas.width, els.decodedCanvas.height);
+    return;
+  }
+  const rect = els.decodedCanvas.getBoundingClientRect();
+  const scaleX = rect.width / decodedRawData.width;
+  const scaleY = rect.height / decodedRawData.height;
+  const scale = Math.min(scaleX, scaleY);
+  // Use minimum kernel of 4 for smooth, silky appearance (reduces dithered splotchiness)
+  const kernel = Math.min(8, Math.max(4, Math.round(1/scale)));
+  const previewData = antiDitherPreview(decodedRawData, kernel);
+  const tmp = document.createElement('canvas');
+  putImageData(tmp, previewData);
+  drawCanvas(els.decodedCanvas, tmp);
+}
+
+/* ---------- Mouse Interaction for Selection Box ---------- */
+function getMousePosOnCanvas(e) {
+  const rect = els.stegoCanvas.getBoundingClientRect();
+  const canvasRect = getCanvasRect();
+  const x = (e.clientX - rect.left) * canvasRect.scaleX;
+  const y = (e.clientY - rect.top) * canvasRect.scaleY;
+  return { x, y };
+}
+
+// Track shift key state
+document.addEventListener('keydown', e => {
+  if (e.key === 'Shift') dragState.shiftPressed = true;
+});
+document.addEventListener('keyup', e => {
+  if (e.key === 'Shift') dragState.shiftPressed = false;
+});
+
+// Mouse down on selection box elements
+els.selectionBoxInner.addEventListener('mousedown', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  dragState.isDragging = true;
+  dragState.dragType = 'move';
+  const pos = getMousePosOnCanvas(e);
+  dragState.startX = pos.x;
+  dragState.startY = pos.y;
+  dragState.startBox = { ...selectionState };
+});
+
+els.selectionRotate.addEventListener('mousedown', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  dragState.isDragging = true;
+  dragState.dragType = 'rotate';
+  const pos = getMousePosOnCanvas(e);
+  dragState.startX = pos.x;
+  dragState.startY = pos.y;
+  dragState.startBox = { ...selectionState };
+  // Calculate initial angle
+  const centerX = selectionState.x + selectionState.width / 2;
+  const centerY = selectionState.y + selectionState.height / 2;
+  dragState.startAngle = Math.atan2(pos.y - centerY, pos.x - centerX) * 180 / Math.PI;
+  dragState.startRotation = selectionState.rotation;
+});
+
+// Add mouse down handlers for all resize handles
+const handles = els.selectionBox.querySelectorAll('.selection-handle');
+handles.forEach(handle => {
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragState.isDragging = true;
+
+    // Determine handle type from class
+    if (handle.classList.contains('nw')) dragState.dragType = 'nw';
+    else if (handle.classList.contains('ne')) dragState.dragType = 'ne';
+    else if (handle.classList.contains('sw')) dragState.dragType = 'sw';
+    else if (handle.classList.contains('se')) dragState.dragType = 'se';
+    else if (handle.classList.contains('n')) dragState.dragType = 'n';
+    else if (handle.classList.contains('s')) dragState.dragType = 's';
+    else if (handle.classList.contains('w')) dragState.dragType = 'w';
+    else if (handle.classList.contains('e')) dragState.dragType = 'e';
+
+    const pos = getMousePosOnCanvas(e);
+    dragState.startX = pos.x;
+    dragState.startY = pos.y;
+    dragState.startBox = { ...selectionState };
+  });
+});
+
+// Mouse move
+document.addEventListener('mousemove', e => {
+  if (!dragState.isDragging) return;
+
+  const pos = getMousePosOnCanvas(e);
+  const dx = pos.x - dragState.startX;
+  const dy = pos.y - dragState.startY;
+
+  if (dragState.dragType === 'move') {
+    selectionState.x = dragState.startBox.x + dx;
+    selectionState.y = dragState.startBox.y + dy;
+    constrainSelectionBox();
+    updateSelectionBoxDisplay();
+  } else if (dragState.dragType === 'rotate') {
+    const centerX = dragState.startBox.x + dragState.startBox.width / 2;
+    const centerY = dragState.startBox.y + dragState.startBox.height / 2;
+    const currentAngle = Math.atan2(pos.y - centerY, pos.x - centerX) * 180 / Math.PI;
+    let newRotation = dragState.startRotation + (currentAngle - dragState.startAngle);
+    newRotation = ((newRotation % 360) + 360) % 360; // Normalize to 0-360
+    selectionState.rotation = Math.round(newRotation);
+    els.rotationSlider.value = selectionState.rotation;
+    els.rotationValue.value = selectionState.rotation;
+    updateSelectionBoxDisplay();
+  } else {
+    // Handle resizing
+    handleResize(dragState.dragType, dx, dy, dragState.shiftPressed);
+  }
+});
+
+// Mouse up
+document.addEventListener('mouseup', () => {
+  const lastType = dragState.dragType;
+  dragState.isDragging = false;
+  dragState.dragType = null;
+  if (lastType === 'rotate' || lastType === 'nw' || lastType === 'ne' || lastType === 'sw' || lastType === 'se' || lastType === 'n' || lastType === 's' || lastType === 'e' || lastType === 'w' || lastType === 'move') {
+    // Position affects where rotated image is placed before dithering
+    recomputeHiddenFromGray();
+  }
+});
+
+function handleResize(handleType, dx, dy, maintainAspect) {
+  const startBox = dragState.startBox;
+  const angleRad = (startBox.rotation * Math.PI) / 180;
+  const cosA = Math.cos(angleRad);
+  const sinA = Math.sin(angleRad);
+
+  // Calculate the starting center point
+  const startCenterX = startBox.x + startBox.width / 2;
+  const startCenterY = startBox.y + startBox.height / 2;
+
+  // Determine which point should stay fixed (opposite corner/edge)
+  let anchorLocalX = 0, anchorLocalY = 0;
+  if (handleType.includes('n')) anchorLocalY = startBox.height / 2;
+  else if (handleType.includes('s')) anchorLocalY = -startBox.height / 2;
+  if (handleType.includes('e')) anchorLocalX = -startBox.width / 2;
+  else if (handleType.includes('w')) anchorLocalX = startBox.width / 2;
+
+  // Convert anchor from local to screen space
+  const anchorScreenX = startCenterX + anchorLocalX * cosA - anchorLocalY * sinA;
+  const anchorScreenY = startCenterY + anchorLocalX * sinA + anchorLocalY * cosA;
+
+  // Transform mouse delta to box's local coordinate system
+  const localDx = dx * cosA + dy * sinA;
+  const localDy = -dx * sinA + dy * cosA;
+
+  let newW = startBox.width;
+  let newH = startBox.height;
+
+  if (maintainAspect) {
+    const aspect = selectionState.originalAspectRatio;
+
+    if (handleType === 'se' || handleType === 'nw') {
+      newW = Math.max(20, startBox.width + (handleType === 'se' ? localDx : -localDx));
+      newH = newW / aspect;
+    } else if (handleType === 'sw' || handleType === 'ne') {
+      newW = Math.max(20, startBox.width + (handleType === 'ne' ? localDx : -localDx));
+      newH = newW / aspect;
+    } else if (handleType === 'e' || handleType === 'w') {
+      newW = Math.max(20, startBox.width + (handleType === 'e' ? localDx : -localDx));
+      newH = newW / aspect;
+    } else if (handleType === 'n' || handleType === 's') {
+      newH = Math.max(20, startBox.height + (handleType === 's' ? localDy : -localDy));
+      newW = newH * aspect;
+    }
+  } else {
+    // Free resize
+    if (handleType.includes('e')) newW = Math.max(20, startBox.width + localDx);
+    else if (handleType.includes('w')) newW = Math.max(20, startBox.width - localDx);
+    if (handleType.includes('s')) newH = Math.max(20, startBox.height + localDy);
+    else if (handleType.includes('n')) newH = Math.max(20, startBox.height - localDy);
+  }
+
+  // Calculate new anchor position in local space (opposite corner/edge)
+  let newAnchorLocalX = 0, newAnchorLocalY = 0;
+  if (handleType.includes('n')) newAnchorLocalY = newH / 2;
+  else if (handleType.includes('s')) newAnchorLocalY = -newH / 2;
+  if (handleType.includes('e')) newAnchorLocalX = -newW / 2;
+  else if (handleType.includes('w')) newAnchorLocalX = newW / 2;
+
+  // Calculate new center such that anchor stays fixed in screen space
+  const newCenterX = anchorScreenX - (newAnchorLocalX * cosA - newAnchorLocalY * sinA);
+  const newCenterY = anchorScreenY - (newAnchorLocalX * sinA + newAnchorLocalY * cosA);
+
+  // Convert center back to top-left position
+  selectionState.x = newCenterX - newW / 2;
+  selectionState.y = newCenterY - newH / 2;
+  selectionState.width = newW;
+  selectionState.height = newH;
+
+  constrainSelectionBox();
+  updateSelectionBoxDisplay();
+}
+
+// Window resize handler
+window.addEventListener('resize', () => {
+  if (selectionState.active) {
+    updateSelectionBoxDisplay();
+  }
+});
+
 /* Randomize seed button */
 els.btnRandSeed.addEventListener('click', () => {
   const r = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0;
   els.seedInput.value = String(r);
+  autoEncodeIfReady();
 });
 
-/* Prepare (grayscale + dither) */
-els.btnPrep.addEventListener('click', () => {
-  if (!coverImg || !hiddenImg) { alert("Please upload both cover and hidden images."); return; }
-  const coverC = makeCanvasLike(coverImg);
-  const hiddenResized = resizeImageTo(hiddenImg, coverC.width, coverC.height);
-  const hidData = getImageData(hiddenResized);
+function prepareHiddenImage() {
+  if (!hiddenImg) return;
 
-  // Detect pure BW? If every pixel 0 or 255 and R=G=B, skip gray + dither.
-  let isBW = true, isGray = true;
-  for (let i = 0; i < hidData.data.length; i += 4) {
-    const r = hidData.data[i], g = hidData.data[i+1], b = hidData.data[i+2];
-    if (!(r === g && g === b)) isGray = false;
-    if (!((r === 0 && g === 0 && b === 0) || (r === 255 && g === 255 && b === 255))) isBW = false;
-    if (!isGray && !isBW) break;
-  }
-  let bw = hidData;
-  if (!isBW) {
-    if (!isGray) bw = toGrayscaleLuma(bw);
-    bw = floydSteinbergBW(bw);
-  } else {
-    // Normalize exactly to 0/255
-    const d = bw.data;
-    for (let i=0;i<d.length;i+=4){ const v=d[i]>127?255:0; d[i]=d[i+1]=d[i+2]=v; }
+  stegoImageData = null;
+  els.btnDownload.disabled = true;
+  // Use the original hidden image dimensions for processing
+  const hiddenCanvas = makeCanvasLike(hiddenImg);
+  const hidData = getImageData(hiddenCanvas);
+
+  // Convert once to grayscale and keep as source-of-truth
+  hiddenGrayOriginal = toGrayscaleLuma(new ImageData(
+    new Uint8ClampedArray(hidData.data),
+    hidData.width,
+    hidData.height
+  ));
+
+  // Initialize or refresh selection box if we have a cover image
+  if (coverImg) {
+    initSelectionBox();
   }
 
-  preparedHiddenBW = bw;
-  const c = document.createElement('canvas');
-  putImageData(c, bw);
-  drawCanvas(els.hiddenDitherCanvas, c);
-
-  els.btnEncode.disabled = false;
-});
+  recomputeHiddenFromGray();
+}
 
 /* Parse seed from input: number -> u32, else FNV-1a hash */
 function parseSeedFromInput(inputStr) {
@@ -677,9 +1520,9 @@ function parseSeedFromInput(inputStr) {
   return fnv1a32(s);
 }
 
-/* Encode */
-els.btnEncode.addEventListener('click', () => {
-  if (!preparedHiddenBW) { alert("Prepare the hidden image first."); return; }
+function performEncode(silent = false) {
+  if (!preparedHiddenBW) { if (!silent) alert("Please choose a hidden image first."); return; }
+  if (!selectionState.active) { if (!silent) alert("Selection box is not initialized."); return; }
 
   let seedU32;
   const manualSeed = els.seedInput.value.trim();
@@ -688,12 +1531,14 @@ els.btnEncode.addEventListener('click', () => {
     seedU32 = crypto.getRandomValues(new Uint32Array(1))[0] >>> 0;
     els.seedInput.value = String(seedU32);
   } else {
-    seedU32 = parseSeedFromInput(manualSeed);
+    const parsed = parseSeedFromInput(manualSeed);
+    if (parsed === null) { if (!silent) alert("Please enter a numeric or passphrase seed."); return; }
+    seedU32 = parsed;
   }
 
   const writeHeader = !els.chkNoHeader.checked;
   if (!writeHeader && manualSeed.length === 0) {
-    alert("When header embedding is disabled, you must provide a seed (it acts like a password).");
+    if (!silent) alert("When header embedding is disabled, you must provide a seed (it acts like a password).");
     return;
   }
 
@@ -701,16 +1546,22 @@ els.btnEncode.addEventListener('click', () => {
   const stegoData = getImageData(coverC);
 
   try {
-    const out = encodeLSB(stegoData, preparedHiddenBW, seedU32, writeHeader);
+    // preparedHiddenBW is full cover-sized with rotated image already in place
+    // Use selection box that covers entire image with rotation=0
+    const selFullCover = { x: 0, y: 0, width: stegoData.width, height: stegoData.height, rotation: 0 };
+    const hiddenDataToUse = preparedHiddenBW;
+    const out = encodeLSBWithSelection(stegoData, hiddenDataToUse, seedU32, writeHeader, selFullCover);
     const outCanvas = document.createElement('canvas');
     putImageData(outCanvas, out);
     drawCanvas(els.stegoCanvas, outCanvas);
     stegoImageData = out;
     els.btnDownload.disabled = false;
   } catch (e) {
-    alert(e.message);
+    if (!silent) alert(e.message);
   }
-});
+}
+
+/* Encode is triggered automatically by state changes; manual button removed */
 
 /* Download stego */
 els.btnDownload.addEventListener('click', () => {
@@ -736,6 +1587,8 @@ els.stegoInFile.addEventListener('change', async e => {
   const ctx = els.decodedCanvas.getContext('2d');
   ctx.clearRect(0,0,els.decodedCanvas.width, els.decodedCanvas.height);
   els.btnDownloadHidden.disabled = true;
+  decodedRawData = null;
+  renderDecodedPreview();
 });
 
 els.btnDecode.addEventListener('click', () => {
@@ -760,7 +1613,8 @@ els.btnDecode.addEventListener('click', () => {
 
     const outC = document.createElement('canvas');
     putImageData(outC, decodedImgData);
-    drawCanvas(els.decodedCanvas, outC);
+    decodedRawData = decodedImgData;
+    renderDecodedPreview();
     els.recoveredSeed.textContent = String(usedSeed >>> 0);
     els.btnDownloadHidden.disabled = false;
   } catch (e) {
@@ -770,15 +1624,19 @@ els.btnDecode.addEventListener('click', () => {
 
 /* Download hidden */
 els.btnDownloadHidden.addEventListener('click', () => {
-  const c = els.decodedCanvas;
-  if (!c.width || !c.height) return;
-  c.toBlob(blob => {
+  if (!decodedRawData) return;
+  const tmp = document.createElement('canvas');
+  putImageData(tmp, decodedRawData);
+  tmp.toBlob(blob => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'ghostmark_hidden.png';
     a.click();
   }, 'image/png');
 });
+
+  // Re-render preview when layout changes
+  window.addEventListener('resize', renderDecodedPreview);
     // simple license modal behavior
     const licenseLink = document.getElementById('licenseLink');
     const licenseOverlay = document.getElementById('licenseOverlay');

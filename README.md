@@ -65,12 +65,13 @@ The tool aims to make digital hiding both transparent and approachable, showing 
 ## Usage
 
 1. Open the tool in your browser.
-2. Upload a cover image and a hidden image.
+2. Choose a cover image and a hidden image (the hidden image is grayscale-converted, scaled to the selection box, and re-dithered automatically).
 3. Enter a seed value or generate one automatically.
 4. Choose whether to embed the seed header.
-5. Click Prepare Hidden to preview the dithered result, then Encode into Cover.
-6. Download the resulting stego image.
-7. To decode, open the Decode tab, upload the stego image, and click Decode.
+5. Set Strength (0..1) to control how strongly bits are written (lower values leave more original LSBs untouched).
+6. Position and resize the selection box on the cover, optionally flipping or rotating the hidden image. Encoding updates automatically when you release drag or change seed/header/flip/rotation/strength.
+7. Save the resulting stego image.
+8. To decode, open the Decode tab, choose the stego image, and click Decode.
 
 ## License
 
