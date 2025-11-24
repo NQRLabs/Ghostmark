@@ -183,18 +183,26 @@
 
     /* FOOTER / LICENSE */
     .license-footer {
-      margin-top: 30px;
-      margin-bottom: 20px;
+      border-top: 2px solid #b9c6ef33;
+      margin-top: 0px;
+      margin-bottom: 0px;
       padding: 10px 8px;
       font-size: 0.68rem;
       color: var(--dim);
       opacity: 0.7;
-      cursor: pointer;
-      transition: opacity 0.15s ease;
       text-align: center;
     }
 
-    .license-footer:hover {
+    .license-footer a {
+      color: var(--dim);
+      cursor: pointer;
+      text-decoration: none; 
+      transition: opacity 0.3s ease;
+    }
+    .license-footer a:hover {
+      color: #17b399;
+      cursor: pointer;
+      text-decoration: underline; 
       opacity: 1;
     }
 
@@ -203,6 +211,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
       z-index: 999;
     }
 
@@ -222,7 +231,7 @@
       overflow-y: auto;
       box-shadow: 0 20px 60px rgba(0,0,0,.6);
       z-index: 1000;
-      text-align: center;
+      /*text-align: center;*/
     }
 
     .license-modal.show,
@@ -382,18 +391,25 @@
     </div>
   </section>
   <!-- FOOTER / LICENSE -->
-  <footer class="license-footer" id="licenseLink">
-    MIT License • Developed by NQR • Click to view
+  <footer class="license-footer">
+    <a href="https://youtube.com/@CLU-NQR" target="_blank">YouTube</a> &middot;
+    <a href="https://discord.gg/HT9YE8rvuN" target="_blank">Discord</a> &middot;
+    <a href="https://nqrlabs.com" target="_blank">NQR Labs</a> &middot;
+    <a href="https://github.com/NQRLabs" target="_blank">GitHub</a>
+    <br>
+    &copy; 2025 NQR &middot; <a id="licenseLink">License</a>
   </footer>
 
   <div class="license-overlay" id="licenseOverlay"></div>
   <div class="license-modal" id="licenseModal" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
     <div class="license-modal-header">
-      <h3 class="license-modal-title" id="licenseTitle">MIT License</h3>
+      <h3 class="license-modal-title" id="licenseTitle">Ghostmark License</h3>
       <span class="license-modal-close" id="licenseClose" aria-label="Close license dialog">&times;</span>
     </div>
-    <pre class="small-muted" style="text-align:center; white-space:pre-wrap; margin-top:14px;">
-Copyright (c) 2025 NQR
+    <pre class="small-muted" style="white-space:pre-wrap; margin-top:14px;">
+Ghostmark - MIT License
+
+Copyright &copy; 2025 NQR
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
